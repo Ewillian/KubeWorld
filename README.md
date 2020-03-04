@@ -58,20 +58,19 @@ La structure correspondra à ce modèle:
 **Optionnel**
 ****
 
-## Monitoring
+## 🖥️ Monitoring 🖥️
 
 
 
-## OIDC
+## 🔐 OIDC (OpenID Connect) 🔐
 
 
 
-## Registry + GUI Web
-
+## 🧧 Registry + GUI Web (Graphical User Interface Web) 🧧
 
 ## Annexes
 
-### Membres du projet
+### Membres dux projet
 
 - Guillaume LE COQ
 - Benoit GALMOT

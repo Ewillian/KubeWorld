@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: myadmin
+  name: myadmin
+  namespace: picroma-namespace
+spec:
+  selector:
+    matchLabels:
+      app: myadmin
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: myadmin
+    spec:
+      containers:
+      - image: phpmyadmin/phpmyadmin
+        imagePullPolicy: Always
+        name: phpmyadmin
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        env:
+          - name: PMA_ARBITRARY
+            value: '1'

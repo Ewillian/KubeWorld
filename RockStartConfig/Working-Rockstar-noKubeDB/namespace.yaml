@@ -1,0 +1,6 @@
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: rockstar-namespace
+  labels:
+    name: rockstar-namespace

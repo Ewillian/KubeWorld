@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-script-init
+data:
+  init.sql: |
+    create database `wordpress`;
+    use `wordpress`;
+

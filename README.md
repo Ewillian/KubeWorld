@@ -68,6 +68,7 @@ Elle permet par exemple de:
 - Appliquer un verrouillage de suppression pour éviter la suppression accidentelle de la base de données.
 - Gardez une trace des bases de données supprimées, nettoyez les instantanés antérieurs avec une seule commande.
 - Utiliser cli pour gérer les bases de données comme kubectl pour Kubernetes.
+> CRD: https://kubernetes.io/docs/tasks/access-kubernetes-api/custom-resources/custom-resource-definitions/
 
 ### Installation
 
@@ -124,7 +125,7 @@ kubedb create -f ${fichier.yaml}
 On vérifie:
 
 ```bash
-ewillian@ewillian:~/Documents/KubeWorld/PicromaConfig/Deployment$ kubedb get my
+$ kubedb get my
 NAME            VERSION   STATUS    AGE
 picroma-mysql   8.0.14    Running   3h29m
 ```
@@ -210,8 +211,7 @@ Maintenant il nous faut nous connecter au service mysql via PhpMyAdmin.
 Pour cela on récupère l'ip sur service PhpMyAdmin:
 
 ```bash
-ewillian@ewillian:~/Documents/KubeWorld/PicromaConfig/Deployment$ minikube service myadmin -n picroma-namespace --url
-[sudo] Mot de passe de ewillian : 
+$ minikube service myadmin -n picroma-namespace --url
 http://10.0.2.15:30178
 ```
 
@@ -236,17 +236,20 @@ spec:
 Pour vérifier / récupérer ces identifiant, il nous faut effectuer:
 
 ```bash
-ewillian@ewillian:~/Documents/KubeWorld/PicromaConfig/Deployment$   kubectl get secrets -n picroma-namespace picroma-mysql-auth -o jsonpath='{.data.\username}' | base64 -d
+$   kubectl get secrets -n picroma-namespace picroma-mysql-auth -o jsonpath='{.data.\username}' | base64 -d
+
 root
 
-ewillian@ewillian:~/Documents/KubeWorld/PicromaConfig/Deployment$   kubectl get secrets -n picroma-namespace picroma-mysql-auth -o jsonpath='{.data.\password}' | base64 -d
+$   kubectl get secrets -n picroma-namespace picroma-mysql-auth -o jsonpath='{.data.\password}' | base64 -d
+
 XUr3vbwW-2p-wJsa
 ```
 
 Enfin, l'ip du pod mysql:
 
 ```bash
-ewillian@ewillian:~/Documents/KubeWorld/PicromaConfig/Deployment$ kubectl get pods picroma-mysql-0 -n picroma-namespace -o yaml | grep podIP
+$ kubectl get pods picroma-mysql-0 -n picroma-namespace -o yaml | grep podIP
+  
   podIP: 172.17.0.6
 ```
 
@@ -254,9 +257,34 @@ Plus qu'à se connecter !
 
 ![](https://i.imgur.com/EspEBGr.png)
 
+
+
+Pour définir le mot de passe de l'utilisateur root il nous faut créer un secret.
+
+```bash
+kubectl create secret generic m1-auth \
+--from-literal=user=root \
+--from-literal=password=password
+
+secret "m1-auth" created
+```
+
+**revoir création secret
+kubectl get dormantdatabase**
+
+#### Initialiser base de donnée via script SQL / Snapshot
+
+
+
 ## 🌐 Wordpress 🌐
 
+https://kubernetes.io/docs/tutorials/stateful-application/mysql-wordpress-persistent-volume/
 
+- script création utilisateur + Database
+- création kubedb mysql
+- création secret user wordpress
+- création déploiement + service wordpress
+- connexion
 
 ## 🧔 RBAC (Role-Based Access Control) 🧔
 

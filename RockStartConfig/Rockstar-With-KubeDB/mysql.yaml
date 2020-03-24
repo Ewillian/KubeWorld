@@ -5,10 +5,6 @@ metadata:
   labels:
     app: wordpress
   namespace: rockstar-namespace
-init:
-  scriptSource:
-    local:
-      path: ./scripts
 spec:
   version: "5.7.25"
   storage:
@@ -18,3 +14,7 @@ spec:
     resources:
       requests:
         storage: 1Gi
+init:
+  scriptSource:
+    local:
+      path: ./scripts/init-wordpress-database.sql

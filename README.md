@@ -278,13 +278,134 @@ kubectl get dormantdatabase**
 
 ## 🌐 Wordpress 🌐
 
-https://kubernetes.io/docs/tutorials/stateful-application/mysql-wordpress-persistent-volume/
+Dans cette partie, nous allons refaire l'infrastructure précédente avec wordpress.
 
-- script création utilisateur + Database
-- création kubedb mysql
-- création secret user wordpress
-- création déploiement + service wordpress
-- connexion
+### Composants
+
+Pour cela, nous vons besoin d'un namespace.
+
+```yaml
+kind: Namespace
+apiVersion: v1
+metadata:
+  name: rockstar-namespace
+  labels:
+    name: rockstar-namespace
+```
+
+Du déploiement mysql kubedb légèrement modifié.
+
+```yaml
+apiVersion: kubedb.com/v1alpha1
+kind: MySQL
+metadata:
+  name: wordpress-mysql
+  labels:
+    app: wordpress
+  namespace: rockstar-namespace
+spec:
+  version: "5.7.25"
+  storage:
+    storageClassName: "standard"
+    accessModes:
+    - ReadWriteOnce
+    resources:
+      requests:
+        storage: 1Gi
+init:
+  scriptSource:
+    local:
+      path: ./scripts/init-wordpress-database.sql
+```
+
+D'un Volume Persistent.
+
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pv-claim
+  labels:
+    app: wordpress
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+```
+
+D'un objet Secret pour l'utilisateur wordpress (chiffré en Base64).
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysecret
+type: Opaque
+data:
+  username: d29yZHByZXNz
+  password: d29yZHByZXNz
+```
+
+Enfin, d'un script SQL pour initialiser l'utilisateur wordpress.
+
+```sql
+CREATE DATABASE IF NOT EXISTS wordpress;
+CREATE USER 'wordpress'@'%' IDENTIFIED BY 'wordpress';
+GRANT ALL PRIVILEGES ON wordpress.* TO 'wordpress'@'%';
+USE wordpress;
+```
+
+### Étape de mise en place
+
+- (1) Création du Namespace.
+
+```
+kubectl apply -f namespace.yaml
+```
+
+**Resultat :**
+
+- (2) Création du Secret.
+
+```
+kubectl apply -f wordpress-auth-mysql.yaml
+```
+
+**Resultat :**
+
+- (3) Création Du volume persistent.
+
+```
+kubectl apply -f mysql-deployment.yaml
+```
+
+**Resultat :**
+
+- (4) Application du déploiement KubeDB Mysql.
+
+```
+kubedb create -f mysql.yaml
+```
+
+**Resultat :**
+
+- (5) Application du déploiement Wordpress
+
+```
+kubectl apply -f wordpress-deployment.yaml
+```
+
+**Resultat :**
+
+- (6) Récupération URL et Connexion
+
+```
+sudo minikube service wordpress -n rockstar-namespace --url
+```
+
+**Resultat :**
 
 ## 🧔 RBAC (Role-Based Access Control) 🧔
 

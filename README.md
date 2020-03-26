@@ -401,13 +401,39 @@ Dans notre cas, nous utiliserons les certificats clients X.509 avec OpenSSL pour
 - Création d’un utilisateur sur la machine principale puis se rendre dans sa home pour effectuer les étapes restantes.
 
 ```
-useradd GeraldDeRive && cd /home/jean
+adduser geraldderive
+
+cd /home/geraldderive
 ```
+
+**Resultat:**
+
+```
+ewillian@ewillian:/home$ sudo adduser geraldderive
+
+Ajout de l utilisateur « geraldderive » ...
+Ajout du nouveau groupe « geraldderive » (1002) ...
+Ajout du nouvel utilisateur « geraldderive » (1002) avec le groupe « geraldderive » ...
+Création du répertoire personnel « /home/geraldderive »...
+Copie des fichiers depuis « /etc/skel »...
+Entrez le nouveau mot de passe UNIX : 
+Retapez le nouveau mot de passe UNIX : 
+passwd : le mot de passe a été mis à jour avec succès
+Modification des informations relatives à l utilisateur geraldderive
+Entrez la nouvelle valeur ou « Entrée » pour conserver la valeur proposée
+    Nom complet []: Gerald De Rive
+    N° de bureau []: 
+    Téléphone professionnel []: 
+    Téléphone personnel []: 
+    Autre []: 
+Ces informations sont-elles correctes ? [O/n] o
+```
+
 
 - Création de sa private key :
 
 ```
-openssl genrsa -out GeraldDeRive.key 2048
+openssl genrsa -out geraldderive.key 2048
 ```
 
 - Création d’une demande de signature de certificat (CSR). CN est le nom de l’utilisateur et O est le groupe. Il est possible de définir des autorisations à l’échelle d’un groupe, ce qui peut simplifier la gestion si plusieurs utilisateurs partagent les mêmes autorisations.
@@ -415,53 +441,53 @@ openssl genrsa -out GeraldDeRive.key 2048
 ```
 # Without Group
 openssl req -new \
--key GeraldDeRive.key \
--out GeraldDeRive.csr \
--subj "/CN=GeraldDeRive"
+-key geraldderive.key \
+-out geraldderive.csr \
+-subj "/CN=geraldderive"
 
 # With a Group where $group is the group name
 openssl req -new \
--key GeraldDeRive.key \
--out GeraldDeRive.csr \
--subj "/CN=GeraldDeRive/O=$group"
+-key geraldderive.key \
+-out geraldderive.csr \
+-subj "/CN=geraldderive/O=$group"
 
 #If the user has multiple groups
 openssl req -new \
--key GeraldDeRive.key \
--out GeraldDeRive.csr \
--subj "/CN=GeraldDeRive/O=$group1/O=$group2/O=$group3"
+-key geraldderive.key \
+-out geraldderive.csr \
+-subj "/CN=geraldderive/O=$group1/O=$group2/O=$group3"
 ```
 
 - Signer le CSR avec le CA de Kubernetes. Le certificat et la clé de Kubernetes sont locallisés dans /etc/kubernetes/pki. Les certificats générés ci-dessous seront valides pour 500 jours.
 
 ```
 openssl x509 -req \
--in GeraldDeRive.csr \
+-in geraldderive.csr \
 -CA /etc/kubernetes/pki/ca.crt \
 -CAkey /etc/kubernetes/pki/ca.key \
 -CAcreateserial \
--out GeraldDeRive.crt -days 500
+-out geraldderive.crt -days 500
 ```
 
 - Création d’un répertoire “.certs” où sera stocké les clé public et privées de l’utilisateur.
 
 ```
-mkdir .certs && mv GeraldDeRive.crt GeraldDeRive.key .certs
+mkdir .certs && mv geraldderive.crt geraldderive.key .certs
 ```
 
 - Création de l’utilisateur dans Kubernetes.
 
 ```
-kubectl config set-credentials GeraldDeRive \
---client-certificate=/home/GeraldDeRive/.certs/GeraldDeRive.crt \
---client-key=/home/GeraldDeRive/.certs/GeraldDeRive.key
+kubectl config set-credentials geraldderive \
+--client-certificate=/home/geraldderive/.certs/geraldderive.crt \
+--client-key=/home/geraldderive/.certs/geraldderive.key
 ```
 
 - Création d’un contexte associé à l’utilisateur.
 
 ```
-kubectl config set-context GeraldDeRive-context \
---cluster=kubernetes --user=GeraldDeRive
+kubectl config set-context geraldderive-context \
+--cluster=kubernetes --user=geraldderive
 ```
 
 - Edition du fichier de configuration utilisateur. Ce fichier de configuration contient toutes les informations nécessaire pour authentifier l’utilisateur auprès du cluster. Vous pouvez utiliser la configuration de l’administrateur du cluster comme template. Il se trouve normalement dans /etc/kubernetes/. Les variables “certificate-authority-data” et “server” doivent être identiques à celle de l’administrateur.
@@ -476,16 +502,16 @@ name: kubernetes
 contexts:
 - context:
  cluster: kubernetes
- user: GeraldDeRive
-name: GeraldDeRive-context
-current-context: GeraldDeRive-context
+ user: geraldderive
+name: geraldderive-context
+current-context: geraldderive-context
 kind: Config
 preferences: {}
 users:
-- name: GeraldDeRive
+- name: geraldderive
 user:
- client-certificate: /home/GeraldDeRive/.certs/GeraldDeRive.cert
- client-key: /home/GeraldDeRive/.certs/GeraldDeRive.key
+ client-certificate: /home/geraldderive/.certs/geraldderive.cert
+ client-key: /home/geraldderive/.certs/geraldderive.key
 ```
 
 - Ensuite, nous devons copier la configuration ci-dessus dans le répertoire .kube.
@@ -497,7 +523,7 @@ mkdir .kube && vi .kube/config
 - Appliquer les permission sur tous les fichiers et répertoires associés à l’utilisateur :
 
 ```
-chown -R GeraldDeRive: /home/GeraldDeRive/
+chown -R geraldderive: /home/geraldderive/
 ```
 
 - Création du namespace et on vérifie si l'utilisateur peut éffeectuer les commandes qui lui sont interdites.

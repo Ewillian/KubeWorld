@@ -1,12 +1,32 @@
-apiVersion: v1
-kind: PersistentVolumeClaim
+apiVersion: kubedb.com/v1alpha1
+kind: MySQL
 metadata:
-  name: mysql-pv-claim
+  name: wordpress-mysql
   labels:
     app: wordpress
+  namespace: rockstar-namespace
 spec:
-  accessModes:
+  version: "5.7.25"
+  storage:
+    storageClassName: "standard"
+    accessModes:
     - ReadWriteOnce
-  resources:
-    requests:
-      storage: 20Gi
+    resources:
+      requests:
+        storage: 1Gi
+  podTemplate:
+    spec:
+      containers:
+        volumeMounts:
+          - name: mysql-initdb
+            mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: mysql-initdb
+          configMap:
+            name: init-wpuser-configmap
+            namespace: rockstar-namespace
+  init:
+    scriptSource:
+      configMap:
+        name: init-wpuser-configmap
+        namespace: rockstar-namespace
